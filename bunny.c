@@ -152,7 +152,7 @@ void init_material()
 	glMaterialfv(GL_FRONT,GL_SHININESS,mat_shininess);
 }
 
-void init_shaders() {
+unsigned int init_shaders() {
 	GLint vertCompiled, fragCompiled;
 	char *vs, *fs;
 	GLuint v, f, p;
@@ -167,14 +167,39 @@ void init_shaders() {
 	free(vs);
 	free(fs); 
 	glCompileShader(v);
+	glGetShaderiv(v,GL_COMPILE_STATUS,&result);
+	if (result == GL_FALSE) {
+		fprintf(stderr, "Vertex Shader: \n");
+		GLint maxLength = 0;
+		glGetShaderiv(v, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		GLchar* errorLog = (GLchar *) malloc(sizeof(GLchar) * maxLength);
+		glGetShaderInfoLog(v, maxLength, &maxLength, &errorLog[0]);
+		fprintf(stderr,"%s\n", errorLog);
+		free(errorLog);
+	}
+
 	glCompileShader(f);
 	glGetShaderiv(f,GL_COMPILE_STATUS,&result);
-	fprintf(stderr,"%d\n",result);
+	if (result == GL_FALSE) {
+		fprintf(stderr, "Fragment Shader: \n");
+		GLint maxLength = 0;
+		glGetShaderiv(f, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		GLchar* errorLog = (GLchar *) malloc(sizeof(GLchar) * maxLength);
+		glGetShaderInfoLog(f, maxLength, &maxLength, &errorLog[0]);
+		fprintf(stderr,"%s\n", errorLog);
+		free(errorLog);
+	}
+
 	p = glCreateProgram();
 	glAttachShader(p,f);
 	glAttachShader(p,v);
 	glLinkProgram(p);
 	glUseProgram(p);
+	return p;
 }
 
 void init_objects() {
