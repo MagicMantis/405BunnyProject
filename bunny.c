@@ -99,33 +99,32 @@ void setup_viewvolume()
 
 void init_lights()
 {
+	float light_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
+
 	//key light
-	float light0_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
 	float light0_diffuse[] = { 2.0, 2.0, 2.0, 0.0 }; 
 	float light0_specular[] = { 2.25, 2.25, 2.25, 0.0 }; 
 	float light0_position[] = { 1.5, 2.0, 2.0, 1.0 };
 	float light0_direction[] = { -1.5, -2.0, -2.0, 1.0};
 
 	//back light
-	float light1_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
-	float light1_diffuse[] = { 2.0, 2.0, 2.0, 0.0 }; 
-	float light1_specular[] = { 2.25, 2.25, 2.25, 0.0 }; 
-	float light1_position[] = { 1.5, 2.0, 2.0, 1.0 };
+	float light1_diffuse[] = { 0.0, 0.0, 0.0, 0.0 }; 
+	float light1_specular[] = { 0.0, 0.0, 0.0, 0.0 }; 
+	float light1_position[] = { -1, 1.0, 2.0, 1.0 };
 	float light1_direction[] = { -1.5, -2.0, -2.0, 1.0};
 
 	//fill light
-	float light2_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
 	float light2_diffuse[] = { 2.0, 2.0, 2.0, 0.0 }; 
 	float light2_specular[] = { 2.25, 2.25, 2.25, 0.0 }; 
 	float light2_position[] = { 1.5, 2.0, 2.0, 1.0 };
 	float light2_direction[] = { -1.5, -2.0, -2.0, 1.0};
 
 	// set scene default ambient 
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT,light0_ambient); 
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT,light_ambient); 
 
 	// make specular correct for spots 
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER,1); 
-	glLightfv(GL_LIGHT0,GL_AMBIENT,light0_ambient); 
+	glLightfv(GL_LIGHT0,GL_AMBIENT,light_ambient); 
 	glLightfv(GL_LIGHT0,GL_DIFFUSE,light0_diffuse); 
 	glLightfv(GL_LIGHT0,GL_SPECULAR,light0_specular); 
 	glLightf(GL_LIGHT0,GL_SPOT_EXPONENT,0.1); 
@@ -135,8 +134,21 @@ void init_lights()
 	glLightf(GL_LIGHT0,GL_QUADRATIC_ATTENUATION,0.01); 
 	glLightfv(GL_LIGHT0,GL_POSITION,light0_position);
 	glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,light0_direction);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
+
+	glLightfv(GL_LIGHT1,GL_AMBIENT,light_ambient); 
+	glLightfv(GL_LIGHT1,GL_DIFFUSE,light1_diffuse); 
+	glLightfv(GL_LIGHT1,GL_SPECULAR,light1_specular); 
+	glLightf(GL_LIGHT1,GL_SPOT_EXPONENT,0.1); 
+	glLightf(GL_LIGHT1,GL_SPOT_CUTOFF,180.0); 
+	glLightf(GL_LIGHT1,GL_CONSTANT_ATTENUATION,1.0); 
+	glLightf(GL_LIGHT1,GL_LINEAR_ATTENUATION,0.2); 
+	glLightf(GL_LIGHT1,GL_QUADRATIC_ATTENUATION,0.01); 
+	glLightfv(GL_LIGHT1,GL_POSITION,light1_position);
+	glLightfv(GL_LIGHT1,GL_SPOT_DIRECTION,light1_direction);
+
+	// do not use fixed function lighting
+	// glEnable(GL_LIGHTING);
+	// glEnable(GL_LIGHT0);
 }
 
 void init_material()
