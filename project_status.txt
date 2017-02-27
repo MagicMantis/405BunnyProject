@@ -1,0 +1,9 @@
+completed:
+bunny geometry
+vertex array
+anti-aliasing
+
+to-do list:
+hollywood lighting
+phong shading
+normalized blinn-phong shader

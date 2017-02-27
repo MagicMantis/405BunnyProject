@@ -1,8 +1,14 @@
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+#include <GL/glx.h>
+#include <GL/glext.h>
 #include <stdio.h>
 #include <stdlib.h>	
 #include <string.h>
-#include <GL/gl.h>
-#include <GL/glut.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <math.h>
 
 //redmoncoreyl@gmail.com
 
@@ -11,10 +17,10 @@ int vertex_count, face_count;
 GLfloat *vertex;
 GLuint *faces;
 
-void readFile(char* fileName) {
+void read_object_file(char* fileName) {
 
 	//open file
-	FILE* fp = fopen(fileName, "r"); 
+	FILE* fp = fopen(fileName,"r"); 
 	if (!fp) {
 		fprintf(stderr, "Failed to open %s\n", fileName);
 		exit(1);
@@ -25,15 +31,10 @@ void readFile(char* fileName) {
 	int length = ftell(fp);
 	rewind(fp);
 
-	fprintf(stderr,"length: %d\n", length);
-
 	//skip unnessesary
 	char tmp[100];
 	int i, x;
-	for (i = 0; i < 12; i++) {
-		x = fscanf(fp, "%s", tmp);
-		fprintf(stdout, "%s\n", tmp);
-	}
+	for (i = 0; i < 12; i++) x = fscanf(fp, "%s", tmp);
 
 	x = fscanf(fp, "%d", &vertex_count);
 	vertex = (GLfloat *) malloc(sizeof(GLfloat) * 6 * vertex_count);
@@ -46,14 +47,10 @@ void readFile(char* fileName) {
 
 	for (i = 0; i < 6; i++) x = fscanf(fp, "%s", tmp);
 
-	fprintf(stderr,"reading %d verticies\n",vertex_count);
 	for (i = 0; i < vertex_count; i++) {
 		x = fscanf(fp,"%f %f %f %f %f %f", &vertex[i*6], 
 			&vertex[i*6+1],&vertex[i*6+2],&vertex[i*6+3],
 			&vertex[i*6+4],&vertex[i*6+5]);
-		//vertex[i*6+3] = 1.0;
-		//vertex[i*6+4] = 1.0;
-		//vertex[i*6+5] = 1.0;
 	}
 
 	for (i = 0; i < face_count; i++) {
@@ -65,11 +62,27 @@ void readFile(char* fileName) {
 	return;
 }
 
+char *read_shader_program(char *filename) 
+{
+	FILE *fp;
+	char *content = NULL;
+	int fd, count;
+	fd = open(filename,O_RDONLY);
+	count = lseek(fd,0,SEEK_END);
+	close(fd);
+	content = (char *)calloc(1,(count+1));
+	fp = fopen(filename,"r");
+	count = fread(content,sizeof(char),count,fp);
+	content[count] = '\0';
+	fclose(fp);
+	return content;
+}
+
 struct point {
 	float x, y, z;
-	};
+};
 
-void setup_the_viewvolume()
+void setup_viewvolume()
 {
 	struct point eye, view, up;
 	glMatrixMode(GL_PROJECTION);
@@ -84,7 +97,7 @@ void setup_the_viewvolume()
 	gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
 }
 
-void do_lights()
+void init_lights()
 {
 	//key light
 	float light0_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
@@ -126,7 +139,7 @@ void do_lights()
 	glEnable(GL_LIGHT0);
 }
 
-void do_material()
+void init_material()
 {
 	float mat_ambient[] = {0.0,0.0,0.0,1.0}; 
 	float mat_diffuse[] = {0.9,0.9,0.1,1.0}; 
@@ -139,20 +152,47 @@ void do_material()
 	glMaterialfv(GL_FRONT,GL_SHININESS,mat_shininess);
 }
 
+void init_shaders() {
+	GLint vertCompiled, fragCompiled;
+	char *vs, *fs;
+	GLuint v, f, p;
+	int result = -1;
 
-void draw_stuff()
-{
+	v = glCreateShader(GL_VERTEX_SHADER);
+	f = glCreateShader(GL_FRAGMENT_SHADER);
+	vs = read_shader_program("bunny.vert");
+	fs = read_shader_program("bunny.frag");
+	glShaderSource(v,1,(const char **)&vs,NULL);
+	glShaderSource(f,1,(const char **)&fs,NULL);
+	free(vs);
+	free(fs); 
+	glCompileShader(v);
+	glCompileShader(f);
+	glGetShaderiv(f,GL_COMPILE_STATUS,&result);
+	fprintf(stderr,"%d\n",result);
+	p = glCreateProgram();
+	glAttachShader(p,f);
+	glAttachShader(p,v);
+	glLinkProgram(p);
+	glUseProgram(p);
+}
+
+void init_objects() {
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glVertexPointer(3,GL_FLOAT,6*sizeof(GLfloat),vertex);
 	glNormalPointer(GL_FLOAT,6*sizeof(GLfloat),&vertex[3]);
-
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	glDrawElements(GL_TRIANGLES,face_count*3,GL_UNSIGNED_INT,faces);
-	glFlush();
 }
 
-void getout(unsigned char key, int x, int y)
+void render_scene()
+{
+	
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	glDrawElements(GL_TRIANGLES,face_count*3,GL_UNSIGNED_INT,faces);
+	glutSwapBuffers();
+}
+
+void end_program(unsigned char key, int x, int y)
 {
 	switch(key) {
         case 'q':
@@ -164,22 +204,25 @@ void getout(unsigned char key, int x, int y)
 
 int main(int argc, char **argv)
 {
-	readFile("bunnyN.ply");
+	read_object_file("bunnyN.ply");
 
 	glutInit(&argc,argv);
-	glutInitDisplayMode(GLUT_RGBA|GLUT_DEPTH|GLUT_MULTISAMPLE);
+	glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH|GLUT_MULTISAMPLE);
 	glutInitWindowSize(768,768);
-	glutInitWindowPosition(100,50);
+	glutInitWindowPosition(100,100);
 	glutCreateWindow("Project 2");
 	glClearColor(0.35,0.35,0.35,0.0);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE_ARB);
 
-	setup_the_viewvolume();
-	do_lights();
-	do_material();
+	setup_viewvolume();
+	init_lights();
+	init_material();
+	init_shaders();
+	init_objects();
 
-	glutDisplayFunc(draw_stuff);
-	glutKeyboardFunc(getout);
+	glutDisplayFunc(render_scene);
+	glutKeyboardFunc(end_program);
 	glutMainLoop();
 	return 0;
 }
