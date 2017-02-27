@@ -12,7 +12,7 @@ void main() {
 
 	P = ec_vposition;
 	N = normalize(ec_vnormal);
-	L = normalize(gl_LightSource[0].position - P);
+	L = normalize(gl_LightSource[0].position.xyz - P);
 	V = normalize(-P);				// eye position is (0,0,0)!
 	H = normalize(L+V);
 			
