@@ -13,7 +13,7 @@ void main() {
 	float shininess = gl_FrontMaterial.shininess;
 
 	float pi = 3.14159265;
-	int light_count = 2;
+	int light_count = 3;
 
 	vec4 color = vec4(0.0,0.0,0.0,0.0);
 
@@ -24,15 +24,15 @@ void main() {
 	for (i = 0; i < light_count; i++) {
 
 		N = normalize(ec_vnormal);
-		L = normalize(gl_LightSource[0].position.xyz - P);
+		L = normalize(gl_LightSource[i].position.xyz - P);
 		V = normalize(-P);
 		H = normalize(L+V);
 
 		//calculate colors
-		vec4 dc = diffuse_color * gl_FrontLightProduct[0].diffuse * max(dot(N,L),0.0);
+		vec4 dc = diffuse_color * gl_FrontLightProduct[i].diffuse * max(dot(N,L),0.0);
 		clamp(diffuse_color, 0.0, 1.0);
 
-		vec4 sc = specular_color * gl_FrontLightProduct[0].specular * (shininess+2.0)/(8.0*pi))*pow(max(dot(H,N),0.0),shininess);
+		vec4 sc = specular_color * gl_FrontLightProduct[i].specular * ((shininess+2.0)/(8.0*pi))*pow(max(dot(H,N),0.0),shininess);
 		clamp(specular_color, 0.0, 1.0);
 
 		color += (dc + sc);

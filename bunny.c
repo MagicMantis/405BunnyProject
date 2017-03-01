@@ -11,14 +11,11 @@
 
 #define PI 3.14159265
 
-//redmoncoreyl@gmail.com
-
-int vertex_count, face_count;
-
-GLfloat *vertex;
+//global variables containing polygon information for bunny
+int face_count;
 GLuint *faces;
 
-void read_object_file(char* fileName) {
+GLfloat *read_object_file(char* fileName) {
 
 	//open file
 	FILE* fp = fopen(fileName,"r"); 
@@ -37,7 +34,9 @@ void read_object_file(char* fileName) {
 	int i, x;
 	for (i = 0; i < 12; i++) x = fscanf(fp, "%s", tmp);
 
+	int vertex_count;
 	x = fscanf(fp, "%d", &vertex_count);
+	GLfloat *vertex;
 	vertex = (GLfloat *) malloc(sizeof(GLfloat) * 6 * vertex_count);
 
 	//skip unnessesary
@@ -60,7 +59,7 @@ void read_object_file(char* fileName) {
 
 	fclose(fp);
 
-	return;
+	return vertex;
 }
 
 char *read_shader_program(char *filename) 
@@ -107,83 +106,56 @@ void normalize(struct point *p) {
 
 void init_lights()
 {
-	float light_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
-
+	//set up hollywood lighting based on eye position
 	struct point eye, light0, light1, light2;
 	eye.x = 0.12; eye.y = .267; eye.z = .325;
 	light0.x = eye.x * cos(PI/12) + eye.z * sin(PI/12);
-	light0.y = eye.y + .24;
+	light0.y = eye.y;
 	light0.z = eye.z * cos(PI/12) - eye.x * sin(PI/12);
 
 	light1.x = eye.x * cos(-PI/3) + eye.z * sin(-PI/3);
 	light1.y = eye.y;
 	light1.z = eye.z * cos(-PI/3) - eye.x * sin(-PI/3);
 
+	light2.x = -eye.x;
+	light2.y = eye.y + .24;
+	light2.z = -eye.z;
 
 	//key light
-	float light0_diffuse[] = { .75, .75, .75, 0.0 }; 
-	float light0_specular[] = { .75, .75, .75, 0.0 }; 
+	float light0_diffuse[] = { 0.75, 0.75, 0.75, 0.0 }; 
+	float light0_specular[] = { 0.75, 0.75, 0.75, 0.0 }; 
 	float light0_position[] = { light0.x, light0.y, light0.z, 1.0 };
-	//float light0_position[] = { 1.5, 2.225, 2.0, 1.0 };
-	float light0_direction[] = { -1.5, -2.0, -2.0, 1.0};
 
 	//fill light
-	float light1_diffuse[] = { 1.0, 1.0, 1.0, 0.0 }; 
-	float light1_specular[] = { 1.0, 1.0, 1.0, 0.0 }; 
+	float light1_diffuse[] = { 0.4, 0.4, 0.4, 0.0 }; 
+	float light1_specular[] = { 0.4, 0.4, 0.6, 0.0 }; 
 	float light1_position[] = { light1.x, light1.y, light1.z, 1.0 };
-	//float light1_position[] = { -1, 1.0, 2.0, 1.0 };
-	float light1_direction[] = { -1.5, -2.0, -2.0, 1.0};
+
 
 	//back light
-	float light2_diffuse[] = { 0.0, 0.0, 3.0, 0.0 }; 
-	float light2_specular[] = { 0.25, 0.25, 3.25, 0.0 }; 
-	float light2_position[] = { 1.5, 2.0, 2.0, 1.0 };
-	float light2_direction[] = { -1.5, -2.0, -2.0, 1.0};
+	float light2_diffuse[] = { 0.3, 0.3, 1.0, 0.0 }; 
+	float light2_specular[] = { 0.25, 0.25, 1.25, 0.0 }; 
+	float light2_position[] = { light2.x, light2.y, light2.z, 1.0 };
 
-	// set scene default ambient 
-	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT,light_ambient); 
+	fprintf(stderr, "Light 0 : %f %f %f %f\n", light0_position[0],light0_position[1],light0_position[2],light0_position[3]);
+	fprintf(stderr, "Light 1 : %f %f %f %f\n", light1_position[0],light1_position[1],light1_position[2],light1_position[3]);
+	fprintf(stderr, "Light 2 : %f %f %f %f\n", light2_position[0],light2_position[1],light2_position[2],light2_position[3]);
 
+
+	//enable key light
 	glLightfv(GL_LIGHT0,GL_POSITION,light0_position); 
-	glLightfv(GL_LIGHT1,GL_POSITION,light1_position); 
-
-	// make specular correct for spots 
-	// glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER,1); 
-	// glLightfv(GL_LIGHT0,GL_AMBIENT,light_ambient); 
 	glLightfv(GL_LIGHT0,GL_DIFFUSE,light0_diffuse); 
 	glLightfv(GL_LIGHT0,GL_SPECULAR,light0_specular); 
-	// glLightf(GL_LIGHT0,GL_SPOT_EXPONENT,0.1); 
-	// glLightf(GL_LIGHT0,GL_SPOT_CUTOFF,180.0); 
-	// glLightf(GL_LIGHT0,GL_CONSTANT_ATTENUATION,1.0); 
-	// glLightf(GL_LIGHT0,GL_LINEAR_ATTENUATION,0.2); 
-	// glLightf(GL_LIGHT0,GL_QUADRATIC_ATTENUATION,0.01); 
-	// glLightfv(GL_LIGHT0,GL_POSITION,light0_position);
-	// glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,light0_direction);
 
-	// glLightfv(GL_LIGHT1,GL_AMBIENT,light_ambient); 
+	//enable fill light
+	glLightfv(GL_LIGHT1,GL_POSITION,light1_position); 
 	glLightfv(GL_LIGHT1,GL_DIFFUSE,light1_diffuse); 
 	glLightfv(GL_LIGHT1,GL_SPECULAR,light1_specular); 
-	// glLightf(GL_LIGHT1,GL_SPOT_EXPONENT,0.1); 
-	// glLightf(GL_LIGHT1,GL_SPOT_CUTOFF,180.0); 
-	// glLightf(GL_LIGHT1,GL_CONSTANT_ATTENUATION,1.0); 
-	// glLightf(GL_LIGHT1,GL_LINEAR_ATTENUATION,0.2); 
-	// glLightf(GL_LIGHT1,GL_QUADRATIC_ATTENUATION,0.01); 
-	// glLightfv(GL_LIGHT1,GL_POSITION,light1_position);
-	// glLightfv(GL_LIGHT1,GL_SPOT_DIRECTION,light1_direction);
 
-	// glLightfv(GL_LIGHT2,GL_AMBIENT,light_ambient); 
-	//glLightfv(GL_LIGHT2,GL_DIFFUSE,light2_diffuse); 
-	// glLightfv(GL_LIGHT2,GL_SPECULAR,light2_specular); 
-	// glLightf(GL_LIGHT2,GL_SPOT_EXPONENT,0.1); 
-	// glLightf(GL_LIGHT2,GL_SPOT_CUTOFF,180.0); 
-	// glLightf(GL_LIGHT2,GL_CONSTANT_ATTENUATION,1.0); 
-	// glLightf(GL_LIGHT2,GL_LINEAR_ATTENUATION,0.2); 
-	// glLightf(GL_LIGHT2,GL_QUADRATIC_ATTENUATION,0.01); 
-	// glLightfv(GL_LIGHT2,GL_POSITION,light2_position);
-	// glLightfv(GL_LIGHT2,GL_SPOT_DIRECTION,light2_direction);
-
-	// do not use fixed function lighting
-	// glEnable(GL_LIGHTING);
-	// glEnable(GL_LIGHT0);
+	//enable back light
+	glLightfv(GL_LIGHT2,GL_POSITION,light2_position); 
+	glLightfv(GL_LIGHT2,GL_DIFFUSE,light2_diffuse); 
+	glLightfv(GL_LIGHT2,GL_SPECULAR,light2_specular);
 }
 
 void init_material()
@@ -249,7 +221,7 @@ unsigned int init_shaders() {
 	return p;
 }
 
-void init_objects() {
+void init_objects(GLfloat *vertex) {
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glVertexPointer(3,GL_FLOAT,6*sizeof(GLfloat),vertex);
@@ -276,7 +248,7 @@ void end_program(unsigned char key, int x, int y)
 
 int main(int argc, char **argv)
 {
-	read_object_file("bunnyN.ply");
+	GLfloat *vertex = read_object_file("bunnyN.ply");
 
 	glutInit(&argc,argv);
 	glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH|GLUT_MULTISAMPLE);
@@ -291,7 +263,7 @@ int main(int argc, char **argv)
 	init_lights();
 	init_material();
 	init_shaders();
-	init_objects();
+	init_objects(vertex);
 
 	glutDisplayFunc(render_scene);
 	glutKeyboardFunc(end_program);
