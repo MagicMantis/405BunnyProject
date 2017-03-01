@@ -14,7 +14,7 @@ void main() {
 	float shininess = gl_FrontMaterial.shininess;
 
 	//get texture color at coord
-	vec4 tcolor = texture2D(mytexture,gl_TexCoord[0].st);
+	vec4 tcolor = texture2D(ground_texture,gl_TexCoord[0].st);
 
 	float pi = 3.14159265;
 	int light_count = 3; //how many lights to render

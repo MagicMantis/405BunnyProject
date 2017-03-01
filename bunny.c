@@ -101,16 +101,12 @@ void load_texture(char *filename)
 	fread(texture_bytes,3,im_size,fptr);
 	fclose(fptr);
 
-	fprintf(stderr, "got here");
-
 	glBindTexture(GL_TEXTURE_2D,1);
 	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,im_width,im_height,0,GL_RGB, 
 		GL_UNSIGNED_BYTE,texture_bytes);
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	cfree(texture_bytes);
-
-	fprintf(stderr, "got here");
 }
 
 struct point {
@@ -269,6 +265,10 @@ void init_objects(GLfloat *vertex) {
 void render_scene()
 {	
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D,1);
+
 	//coords for ground
 	struct point bottom[4]={{-2.0,0.0,-2.0},{-2.0,0.0,1.0},{1.0,0.0,1.0},{1.0,0.0,-1.0}};
 
