@@ -136,12 +136,7 @@ void init_lights()
 	float light2_diffuse[] = { 0.3, 0.3, 1.0, 0.0 }; 
 	float light2_specular[] = { 0.25, 0.25, 1.25, 0.0 }; 
 	float light2_position[] = { light2.x, light2.y, light2.z, 1.0 };
-
-	fprintf(stderr, "Light 0 : %f %f %f %f\n", light0_position[0],light0_position[1],light0_position[2],light0_position[3]);
-	fprintf(stderr, "Light 1 : %f %f %f %f\n", light1_position[0],light1_position[1],light1_position[2],light1_position[3]);
-	fprintf(stderr, "Light 2 : %f %f %f %f\n", light2_position[0],light2_position[1],light2_position[2],light2_position[3]);
-
-
+	
 	//enable key light
 	glLightfv(GL_LIGHT0,GL_POSITION,light0_position); 
 	glLightfv(GL_LIGHT0,GL_DIFFUSE,light0_diffuse); 
@@ -268,5 +263,8 @@ int main(int argc, char **argv)
 	glutDisplayFunc(render_scene);
 	glutKeyboardFunc(end_program);
 	glutMainLoop();
+
+	free(vertex);
+	free(faces);
 	return 0;
 }
