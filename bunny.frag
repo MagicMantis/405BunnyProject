@@ -3,6 +3,8 @@
 // These are set by the .vert code, and they're interpolated.
 varying vec3 ec_vnormal, ec_vposition;
 
+uniform sampler2D ground_texture;
+
 void main() {
 	vec3 P, N, L, V, H;
 
@@ -10,6 +12,9 @@ void main() {
 	vec4 diffuse_color = gl_FrontMaterial.diffuse; 
 	vec4 specular_color = gl_FrontMaterial.specular; 
 	float shininess = gl_FrontMaterial.shininess;
+
+	//get texture color at coord
+	vec4 tcolor = texture2D(mytexture,gl_TexCoord[0].st);
 
 	float pi = 3.14159265;
 	int light_count = 3; //how many lights to render
@@ -29,7 +34,8 @@ void main() {
 		H = normalize(L+V);
 
 		//calculate diffuse color
-		vec4 dc = diffuse_color * gl_FrontLightProduct[i].diffuse * max(dot(N,L),0.0);
+		vec4 dc = 0.1*diffuse_color+0.9*tcolor;
+		dc *= gl_FrontLightProduct[i].diffuse * max(dot(N,L),0.0);
 		clamp(diffuse_color, 0.0, 1.0);
 
 		//calculate the specular color

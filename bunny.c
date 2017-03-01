@@ -64,18 +64,53 @@ GLfloat *read_object_file(char* fileName) {
 
 char *read_shader_program(char *filename) 
 {
+	//open the shader file and get length in bytes
 	FILE *fp;
 	char *content = NULL;
 	int fd, count;
 	fd = open(filename,O_RDONLY);
 	count = lseek(fd,0,SEEK_END);
 	close(fd);
+
+	//allocate space to store the ascii code and read the file into it
 	content = (char *)calloc(1,(count+1));
 	fp = fopen(filename,"r");
 	count = fread(content,sizeof(char),count,fp);
 	content[count] = '\0';
 	fclose(fp);
 	return content;
+}
+
+void load_texture(char *filename)
+{
+	FILE *fopen(), *fptr;
+	char buf[512];
+	int im_size, im_width, im_height, max_color;
+	unsigned char *texture_bytes, *parse; 
+	int x;
+
+	//read header
+	fptr=fopen(filename,"r");
+	x = fscanf(fptr, "%s", parse);
+	x = fscanf(fptr, "%d %d", &im_width, &im_height);
+	x = fscanf(fptr, "%d", &max_color);
+
+	//read color data
+	im_size = im_width*im_height;
+	texture_bytes = (unsigned char *)calloc(3,im_size);
+	fread(texture_bytes,3,im_size,fptr);
+	fclose(fptr);
+
+	fprintf(stderr, "got here");
+
+	glBindTexture(GL_TEXTURE_2D,1);
+	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,im_width,im_height,0,GL_RGB, 
+		GL_UNSIGNED_BYTE,texture_bytes);
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	cfree(texture_bytes);
+
+	fprintf(stderr, "got here");
 }
 
 struct point {
@@ -92,6 +127,7 @@ void setup_viewvolume()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	eye.x = 0.12; eye.y = .267; eye.z = .325;
+	//eye.x = 1.12; eye.y = 1.267; eye.z = 1.325;
 	view.x = -0.025; view.y = 0.1; view.z = 0.0;
 	up.x = 0.0; up.y = 1.0; up.z = 0.0;
 	gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
@@ -136,7 +172,7 @@ void init_lights()
 	float light2_diffuse[] = { 0.3, 0.3, 1.0, 0.0 }; 
 	float light2_specular[] = { 0.25, 0.25, 1.25, 0.0 }; 
 	float light2_position[] = { light2.x, light2.y, light2.z, 1.0 };
-	
+
 	//enable key light
 	glLightfv(GL_LIGHT0,GL_POSITION,light0_position); 
 	glLightfv(GL_LIGHT0,GL_DIFFUSE,light0_diffuse); 
@@ -216,6 +252,13 @@ unsigned int init_shaders() {
 	return p;
 }
 
+void set_uniform(int p)
+{
+	int location;
+	location = glGetUniformLocation(p,"ground_texture");
+	glUniform1i(location,0);
+}
+
 void init_objects(GLfloat *vertex) {
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -224,9 +267,17 @@ void init_objects(GLfloat *vertex) {
 }
 
 void render_scene()
-{
-	
+{	
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	//coords for ground
+	struct point bottom[4]={{-2.0,0.0,-2.0},{-2.0,0.0,1.0},{1.0,0.0,1.0},{1.0,0.0,-1.0}};
+
+	glBegin(GL_QUADS);
+	glNormal3f(0.0,1.0,0.0);
+	int i;
+	for(i=0;i<4;i++) glVertex3f(bottom[i].x,bottom[i].y,bottom[i].z);
+	glEnd();
+
 	glDrawElements(GL_TRIANGLES,face_count*3,GL_UNSIGNED_INT,faces);
 	glutSwapBuffers();
 }
@@ -251,13 +302,15 @@ int main(int argc, char **argv)
 	glutInitWindowPosition(100,100);
 	glutCreateWindow("Project 2");
 	glClearColor(0.35,0.35,0.35,0.0);
+	load_texture("snow.ppm");
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_MULTISAMPLE_ARB);
 
 	setup_viewvolume();
 	init_lights();
 	init_material();
-	init_shaders();
+	int shader_id = init_shaders();
+	set_uniform(shader_id);
 	init_objects(vertex);
 
 	glutDisplayFunc(render_scene);
