@@ -122,15 +122,14 @@ void init_lights()
 	light2.z = -eye.z;
 
 	//key light
-	float light0_diffuse[] = { 0.75, 0.75, 0.75, 0.0 }; 
+	float light0_diffuse[] = { 0.60, 0.60, 0.60, 0.0 }; 
 	float light0_specular[] = { 0.75, 0.75, 0.75, 0.0 }; 
 	float light0_position[] = { light0.x, light0.y, light0.z, 1.0 };
 
 	//fill light
-	float light1_diffuse[] = { 0.4, 0.4, 0.4, 0.0 }; 
+	float light1_diffuse[] = { 0.55, 0.55, 0.4, 0.0 }; 
 	float light1_specular[] = { 0.4, 0.4, 0.6, 0.0 }; 
 	float light1_position[] = { light1.x, light1.y, light1.z, 1.0 };
-
 
 	//back light
 	float light2_diffuse[] = { 0.2, 0.2, 0.9, 0.0 }; 
@@ -225,9 +224,19 @@ void init_objects(GLfloat *vertex) {
 
 void render_scene()
 {
-	
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);	
+	//coords for ground
+	struct point bottom[4]={{-0.2,0.0,-.3},{-0.2,0.0,0.1},{.1,0.0,0.1},{.1,0.0,-.3}};
+
+	glBegin(GL_QUADS);
+	glNormal3f(0.0,1.0,0.0);
+	int i;
+	for(i=0;i<4;i++) glVertex3f(bottom[i].x,bottom[i].y,bottom[i].z);
+	glEnd();
+
 	glDrawElements(GL_TRIANGLES,face_count*3,GL_UNSIGNED_INT,faces);
+
+
 	glutSwapBuffers();
 }
 
@@ -250,7 +259,7 @@ int main(int argc, char **argv)
 	glutInitWindowSize(768,768);
 	glutInitWindowPosition(100,100);
 	glutCreateWindow("Project 2");
-	glClearColor(0.35,0.35,0.35,0.0);
+	glClearColor(0.25,0.25,0.25,0.0);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_MULTISAMPLE_ARB);
 
