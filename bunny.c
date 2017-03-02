@@ -133,7 +133,7 @@ void init_lights()
 
 
 	//back light
-	float light2_diffuse[] = { 0.3, 0.3, 1.0, 0.0 }; 
+	float light2_diffuse[] = { 0.2, 0.2, 0.9, 0.0 }; 
 	float light2_specular[] = { 0.25, 0.25, 1.25, 0.0 }; 
 	float light2_position[] = { light2.x, light2.y, light2.z, 1.0 };
 	
